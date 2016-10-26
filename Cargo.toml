@@ -1,0 +1,9 @@
+[package]
+name = "rust_regnbr"
+version = "0.1.0"
+authors = ["Per-Victor Persson <dracyr@gmail.com>"]
+
+[dependencies]
+byteorder = "0.5.3"
+time = "0.1.35"
+fnv = "1.0.5"
