@@ -25,7 +25,7 @@ fn main() {
     let mut i = 0;    
 
     let mut start = PreciseTime::now();
-    do_stuff("Rgn00.txt");
+    do_stuff("Rgn01.txt");
     let mut end = PreciseTime::now();
     let mut diff = start.to(end);
     let mut avg = diff;
@@ -52,53 +52,31 @@ fn do_stuff(path: &str) -> bool {
         Ok(file) => file,
     };    
 
-    let mut buff = [0; 8];
-    let mut reg_nbrs: HashSet<&str, MyHasher> = HashSet::default();
+    let mut file_buffer = [0u8; 8];
+    let mut reg_nbrs: HashSet<_, MyHasher> = HashSet::default();
     let BUFFSIZE = 8;
     let mut read_bytes = BUFFSIZE;
 
     while read_bytes == BUFFSIZE {
-        let mut file_buffer = [0u8; 8];
-        let data = {
-            match file.read(&mut file_buffer) {
-                Ok(bytes) => {
-                    let (d1, d2) = file_buffer.split_at(6);
-                    d1.clone()
-                },
-                Err(_) => return false
-            }
+        read_bytes = match file.read(&mut file_buffer) {
+            Ok(bytes) => bytes,
+            Err(_) => return false
         };
-        // let hash_key = str::from_utf8(&data).unwrap();
-        // reg_nbrs.insert(&hash_key);
-        // println!("{:?}", hash_key);
-        println!("{:?}", data);
-        // if reg_nbrs.contains(hash_key) {            
-        //     println!("{:?}", hash_key);
-        //     println!("Dupe found!\n");
-        //     return true;
-        // } else {
-        //     // let x = hash_key;
-        //     reg_nbrs.insert(hash_key);
-        // }
+        let (data, _) = file_buffer.split_at(6);
+        let d2 = [
+            data[0] - 65,
+            data[1] - 65,
+            data[2] - 65,
+            data[3] - 48,
+            data[4] - 48,
+            data[5] - 48
+        ];
+        let key = d2;
+        if !reg_nbrs.insert(key) {
+            println!("{:?}", data);
+            return false;
+        }
     }
-
-    // while file.read(&mut buff[..]).unwrap() > 0 {
-    //     let (reg, _) = buff.split_at(6);
-    //     // let mut buf = Cursor::new(&buff[..]);
-    //     // let hash_key = buf.read_u32::<BigEndian>().unwrap();
-    //     // let buff2 = buff.clone();
-    //     let hash_key = str::from_utf8(&reg).unwrap();
-
-    //     if reg_nbrs.contains(hash_key) {            
-    //         println!("{:?}", hash_key);
-    //         println!("Dupe found!\n");
-    //         return true;
-    //     } else {
-    //         // let x = hash_key;
-    //         reg_nbrs.insert(hash_key);
-    //     }
-    // }
-    // println!("No dupe found\n");
     return false;
 }
 
