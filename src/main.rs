@@ -1,9 +1,9 @@
-// open.rs
 use std::error::Error;
 use std::path::Path;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::BufReader;
+use std::env;
 
 extern crate time;
 use time::PreciseTime;
@@ -12,24 +12,23 @@ extern crate fnv;
 use std::collections::HashSet;
 use std::hash::BuildHasherDefault;
 use fnv::FnvHasher;
-
 type MyHasher = BuildHasherDefault<FnvHasher>;
 
 fn main() {
     let start = PreciseTime::now();
-    find_duplicate("Rgn02.txt");
+    find_duplicate(env::args().nth(1).unwrap());
     let end = PreciseTime::now();
     let diff = start.to(end);
     let avg = diff;
 
-    println!("{}s", avg);
+    println!("{}", avg);
 }
 
-fn find_duplicate(path: &str) -> bool {
-    let path = Path::new(path);
+fn find_duplicate(path: String) -> bool {
+    let path = Path::new(&path);
     let display = path.display();
 
-    let mut file = match File::open(&path) {
+    let file = match File::open(&path) {
         Err(why) => panic!("couldn't open {}: {}", display, why.description()),
         Ok(file) => file,
     };    
@@ -49,7 +48,6 @@ fn find_duplicate(path: &str) -> bool {
             data[5] - 48
         ];
         if !reg_nbrs.insert(key) {
-            println!("{:?}", data);
             return true;
         }
     }
