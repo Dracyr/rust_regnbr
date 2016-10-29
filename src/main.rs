@@ -25,7 +25,7 @@ fn main() {
     let mut i = 0;    
 
     let mut start = PreciseTime::now();
-    do_stuff1("Rgn00.txt");
+    do_stuff("Rgn00.txt");
     let mut end = PreciseTime::now();
     let mut diff = start.to(end);
     let mut avg = diff;
@@ -42,7 +42,7 @@ fn main() {
     println!("{}s", avg);
 }
 
-fn do_stuff1(path: &str) -> bool {
+fn do_stuff(path: &str) -> bool {
     let path = Path::new(path);
     let display = path.display();
 
@@ -52,53 +52,84 @@ fn do_stuff1(path: &str) -> bool {
         Ok(file) => file,
     };    
 
-    let mut buff = [0, 0, 0, 0, 0, 0, 0, 0];
-    let mut found_eof = false;
-    let mut reg_nbrs: HashSet<_, MyHasher> = HashSet::default();
-    // let mut num : u32;
+    let mut buff = [0; 8];
+    let mut reg_nbrs: HashSet<&str, MyHasher> = HashSet::default();
+    let BUFFSIZE = 8;
+    let mut read_bytes = BUFFSIZE;
 
-    while !found_eof {
-        match file.read(&mut buff) {
-            Err(_why) => found_eof = true,
-            Ok(n) => if n <= 0 {
-                found_eof = true;
-            },
-        };
-        if !found_eof {
-            let mut buf = Cursor::new(&buff[..]);
-            let num = buf.read_u32::<BigEndian>().unwrap();
-            // num = str::from_utf8(&buff).unwrap();
-            // let mut num = str::from_utf8(&mut buff).unwrap();
-            println!("{:?}", num);
-            if reg_nbrs.contains(&num) {
-                println!("Dupe found!\n");
-                return true;
-            } else {
-                reg_nbrs.insert(num);
+    while read_bytes == BUFFSIZE {
+        let mut file_buffer = [0u8; 8];
+        let data = {
+            match file.read(&mut file_buffer) {
+                Ok(bytes) => {
+                    let (d1, d2) = file_buffer.split_at(6);
+                    d1.clone()
+                },
+                Err(_) => return false
             }
-        }
+        };
+        // let hash_key = str::from_utf8(&data).unwrap();
+        // reg_nbrs.insert(&hash_key);
+        // println!("{:?}", hash_key);
+        println!("{:?}", data);
+        // if reg_nbrs.contains(hash_key) {            
+        //     println!("{:?}", hash_key);
+        //     println!("Dupe found!\n");
+        //     return true;
+        // } else {
+        //     // let x = hash_key;
+        //     reg_nbrs.insert(hash_key);
+        // }
     }
+
+    // while file.read(&mut buff[..]).unwrap() > 0 {
+    //     let (reg, _) = buff.split_at(6);
+    //     // let mut buf = Cursor::new(&buff[..]);
+    //     // let hash_key = buf.read_u32::<BigEndian>().unwrap();
+    //     // let buff2 = buff.clone();
+    //     let hash_key = str::from_utf8(&reg).unwrap();
+
+    //     if reg_nbrs.contains(hash_key) {            
+    //         println!("{:?}", hash_key);
+    //         println!("Dupe found!\n");
+    //         return true;
+    //     } else {
+    //         // let x = hash_key;
+    //         reg_nbrs.insert(hash_key);
+    //     }
+    // }
     // println!("No dupe found\n");
     return false;
 }
 
-#[allow(unused_must_use)]
-fn do_stuff2(path: &str) -> bool {
-    let path = Path::new(&path);
+#[allow(dead_code)]
+fn do_string(path: &str) -> bool {
+    let path = Path::new(path);
     let display = path.display();
 
     // Open the path in read-only mode, returns `io::Result<File>`
-    let mut file = match File::open(&path) {
+    let f = match File::open(&path) {
         Err(why) => panic!("couldn't open {}: {}", display, why.description()),
         Ok(file) => file,
-    };
+    };    
+    let file = BufReader::new(&f);
 
-    file.bytes()
-        .map(|x| x.unwrap());
+    let mut reg_nbrs: HashSet<_, MyHasher> = HashSet::default();
 
+    for (num, line) in file.lines().enumerate() {
+        let l = line.unwrap();
+        if reg_nbrs.contains(&l) {
+            println!("Dupe found! {:?}\n", l);
+            return true;
+        } else {
+            reg_nbrs.insert(l);
+        }
+    }
 
+    // println!("No dupe found\n");
     return false;
 }
+
 
 // Things to try: BitVec, different ways of reading the file
 // Note 1
