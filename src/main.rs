@@ -16,7 +16,7 @@ type MyHasher = BuildHasherDefault<FnvHasher>;
 
 fn main() {
     let start = PreciseTime::now();
-    find_duplicate(env::args().nth(1).unwrap());
+    if find_duplicate(env::args().nth(1).unwrap()) { println!("Dublett") } else { println!("Ej Dublett") };
     let end = PreciseTime::now();
     let diff = start.to(end);
     let avg = diff;
@@ -36,20 +36,24 @@ fn find_duplicate(path: String) -> bool {
 
     let mut file_buffer = [0u8; 8];
     let mut reg_nbrs: HashSet<_, MyHasher> = HashSet::default();
+    let mut i = 0;
 
-    while reader.read(&mut file_buffer).unwrap() > 0 {
+    while reader.read(&mut file_buffer).unwrap() > 0 { // && i <= 5 {
         let (data, _) = file_buffer.split_at(6);
-        let key = [
-            data[0] - 65,
-            data[1] - 65,
-            data[2] - 65,
-            data[3] - 48,
-            data[4] - 48,
-            data[5] - 48
-        ];
-        if !reg_nbrs.insert(key) {
+        let k0 : u32 = data[0] as u32; // X
+        let k1 : u32 = data[1] as u32; // X
+        let k2 : u32 = data[2] as u32; // X
+        let k3 : u32 = data[3] as u32; // 9
+        let k4 : u32 = data[4] as u32; // 9
+        let k5 : u32 = data[5] as u32; // 9
+
+        let k = (k5 - 48) * 26u32.pow(5) + (k4 - 48) * 26u32.pow(4) + (k3 - 48) * 26u32.pow(3) + (k2 - 65) * 26u32.pow(2) + (k1 - 65) * 26 + (k0 - 64);
+        if !reg_nbrs.insert(k) {
+            println!("{:?}", data);
             return true;
         }
+
+        i += 1;
     }
     return false;
 }
