@@ -3,7 +3,10 @@ name = "rust_regnbr"
 version = "0.1.0"
 authors = ["Per-Victor Persson <dracyr@gmail.com>"]
 
+[profile.release]
+opt-level = 3
+lto = true
+
 [dependencies]
-byteorder = "0.5.3"
 time = "0.1.35"
-fnv = "1.0.5"
+bit-set = "0.4.0"
